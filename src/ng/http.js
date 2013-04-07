@@ -105,6 +105,24 @@ function $HttpProvider() {
       return isObject(d) && !isFile(d) ? toJson(d) : d;
     }],
 
+    // transform outgoing request url
+    transformUrl: [function(baseUrl, url) {
+      if (baseUrl && !url.match(/https?:\/\//g)) {
+        if (baseUrl[baseUrl.length - 1] != '/') {
+          baseUrl += '/';
+        }
+
+        url = (baseUrl + url).replace(/(:)?\/\//g, function($0, $1) {
+          // get rid of any double slashes that aren't related to the protocol
+          return $1 ? $0 : '/';
+        });
+      }
+
+      return url;
+    }],
+
+    baseUrl: null,
+
     // default headers
     headers: {
       common: {
@@ -481,6 +499,10 @@ function $HttpProvider() {
           reqData = transformData(config.data, headersGetter(reqHeaders), reqTransformFn),
           promise;
 
+      forEach($config.transformUrl, function(fn) {
+        config.url = fn($config.baseUrl, config.url);
+      });
+
       // strip content-type if data is undefined
       if (isUndefined(config.data)) {
         delete reqHeaders['Content-Type'];
@@ -495,7 +517,7 @@ function $HttpProvider() {
 
       // apply interceptors
       forEach(responseInterceptors, function(interceptor) {
-        promise = interceptor(promise);
+        promise = interceptor(promise, config);
       });
 
       promise.success = function(fn) {
