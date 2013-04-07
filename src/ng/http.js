@@ -142,6 +142,24 @@ function $HttpProvider() {
       return isObject(d) && !isFile(d) ? toJson(d) : d;
     }],
 
+    // transform outgoing request url
+    transformUrl: [function(baseUrl, url) {
+      if (baseUrl && !url.match(/https?:\/\//g)) {
+        if (baseUrl[baseUrl.length - 1] != '/') {
+          baseUrl += '/';
+        }
+
+        url = (baseUrl + url).replace(/(:)?\/\//g, function($0, $1) {
+          // get rid of any double slashes that aren't related to the protocol
+          return $1 ? $0 : '/';
+        });
+      }
+
+      return url;
+    }],
+
+    baseUrl: null,
+
     // default headers
     headers: {
       common: {
@@ -644,7 +662,8 @@ function $HttpProvider() {
     function $http(requestConfig) {
       var config = {
         transformRequest: defaults.transformRequest,
-        transformResponse: defaults.transformResponse
+        transformResponse: defaults.transformResponse,
+        transformUrl: defaults.transformUrl
       };
       var headers = {};
 
@@ -652,6 +671,7 @@ function $HttpProvider() {
       config.headers = headers;
       config.method = uppercase(config.method);
 
+// <<<<<<< HEAD
       extend(headers,
           defaults.headers.common,
           defaults.headers[lowercase(config.method)],
@@ -662,7 +682,28 @@ function $HttpProvider() {
           : undefined;
       if (xsrfValue) {
         headers[(config.xsrfHeaderName || defaults.xsrfHeaderName)] = xsrfValue;
+// =======
+//       var reqTransformFn = config.transformRequest || $config.transformRequest,
+//           respTransformFn = config.transformResponse || $config.transformResponse,
+//           defHeaders = $config.headers,
+//           reqHeaders = extend({'X-XSRF-TOKEN': $browser.cookies()['XSRF-TOKEN']},
+//               defHeaders.common, defHeaders[lowercase(config.method)], config.headers),
+//           reqData = transformData(config.data, headersGetter(reqHeaders), reqTransformFn),
+//           promise;
+
+//       forEach($config.transformUrl, function(fn) {
+//         config.url = fn($config.baseUrl, config.url);
+//       });
+
+//       // strip content-type if data is undefined
+//       if (isUndefined(config.data)) {
+//         delete reqHeaders['Content-Type'];
+// >>>>>>> 8f41d5fca5b8b0c09108e03dfcbb6f850aaa0a05
       }
+
+      forEach(config.transformUrl, function(fn){
+        config.url = fn(config.baseUrl, config.url);
+      });
 
 
       var serverRequest = function(config) {
@@ -685,6 +726,7 @@ function $HttpProvider() {
       var promise = $q.when(config);
 
       // apply interceptors
+// <<<<<<< HEAD
       forEach(reversedInterceptors, function(interceptor) {
         if (interceptor.request || interceptor.requestError) {
           chain.unshift(interceptor.request, interceptor.requestError);
@@ -692,6 +734,10 @@ function $HttpProvider() {
         if (interceptor.response || interceptor.responseError) {
           chain.push(interceptor.response, interceptor.responseError);
         }
+// =======
+//       forEach(responseInterceptors, function(interceptor) {
+//         promise = interceptor(promise, config);
+// >>>>>>> 8f41d5fca5b8b0c09108e03dfcbb6f850aaa0a05
       });
 
       while(chain.length) {

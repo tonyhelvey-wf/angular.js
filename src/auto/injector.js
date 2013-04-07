@@ -52,6 +52,20 @@ function annotate(fn) {
     if (!($inject = fn.$inject)) {
       $inject = [];
       fnText = fn.toString().replace(STRIP_COMMENTS, '');
+
+      /**********************************************************************/
+      /* CUSTOM WF CHECK FOR MISSING $inject properties on controllers      */
+      /**********************************************************************/
+      
+      var controllerFunction = fnText.match(/^function\s*([A-Za-z0-9]+Controller)/);
+      angular.automaticControllerInjections = angular.automaticControllerInjections || [];
+      if (controllerFunction && controllerFunction.length) {
+        angular.automaticControllerInjections.push(controllerFunction[1].toString());
+      }
+      /**********************************************************************/
+      /* END CUSTOM WF CHECK FOR MISSING $inject properties on controllers  */
+      /**********************************************************************/
+
       argDecl = fnText.match(FN_ARGS);
       forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
         arg.replace(FN_ARG, function(all, underscore, name){
