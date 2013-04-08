@@ -213,10 +213,10 @@ function $HttpProvider() {
        */
       reversedInterceptors.splice(index, 0, {
         response: function(response) {
-          return responseFn($q.when(response));
+          return responseFn($q.when(response), response.config);
         },
         responseError: function(response) {
-          return responseFn($q.reject(response));
+          return responseFn($q.reject(response), response.config);
         }
       });
     });
