@@ -662,8 +662,7 @@ function $HttpProvider() {
     function $http(requestConfig) {
       var config = {
         transformRequest: defaults.transformRequest,
-        transformResponse: defaults.transformResponse,
-        transformUrl: defaults.transformUrl
+        transformResponse: defaults.transformResponse
       };
       var headers = {};
 
@@ -701,8 +700,8 @@ function $HttpProvider() {
 // >>>>>>> 8f41d5fca5b8b0c09108e03dfcbb6f850aaa0a05
       }
 
-      forEach(config.transformUrl, function(fn){
-        config.url = fn(config.baseUrl, config.url);
+      forEach(defaults.transformUrl, function(fn){
+        config.url = fn(defaults.baseUrl, config.url);
       });
 
 
